@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💘 Para amorcito</title>
+
+  <style>
+    :root{
+      --bgA:#fff6fb;
+      --bgB:#ffe3f2;
+      --card: rgba(255,255,255,.88);
+      --text:#1a1333;
+      --muted:#4c3b66;
+      --stroke: rgba(26,19,51,.10);
+      --pink:#ff4fa6;
+      --pink2:#ff7ad1;
+    }
+    *{ box-sizing:border-box; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center; color:var(--text);
+      background:
+        radial-gradient(900px 520px at 20% 15%, rgba(255,79,166,.18), transparent 60%),
+        radial-gradient(900px 520px at 85% 35%, rgba(255,160,210,.22), transparent 60%),
+        linear-gradient(180deg, var(--bgA), var(--bgB));
+      overflow:hidden; position:relative;
+    }
+
+    /* corazones flotando */
+    .bg-hearts{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+    .bg-hearts span{
+      position:absolute; bottom:-40px; opacity:0;
+      animation: floatUp var(--dur) linear infinite;
+      font-size: var(--size); left: var(--x);
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.08));
+    }
+    @keyframes floatUp{
+      0%   { transform: translateY(0) scale(.9) rotate(0deg); opacity:0; }
+      10%  { opacity:.75; }
+      100% { transform: translateY(-115vh) scale(1.15) rotate(18deg); opacity:0; }
+    }
+
+    .card{
+      width:min(760px, 92vw);
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:24px;
+      padding:28px;
+      box-shadow: 0 25px 70px rgba(26,19,51,.12);
+      backdrop-filter: blur(12px);
+      position:relative;
+      z-index:1;
+    }
+
+    h1{ margin:0; font-size: clamp(26px, 3.6vw, 38px); line-height:1.12; }
+    p{ margin:.65rem 0 0; color:var(--muted); font-size:16px; }
+
+    .gif{
+      margin:18px 0 10px;
+      width:100%;
+      max-height:320px;
+      object-fit:cover;
+      border-radius:18px;
+      border:1px solid rgba(26,19,51,.10);
+      background: rgba(255,255,255,.6);
+    }
+
+    .btns{ display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:center; }
+    button{
+      border:0; padding:12px 16px; border-radius:14px; font-weight:800; cursor:pointer;
+      transition: transform .12s ease, filter .2s ease;
+      user-select:none; white-space:nowrap;
+    }
+    button:active{ transform: scale(.98); }
+
+    #yes{
+      background: linear-gradient(90deg, var(--pink), var(--pink2));
+      color:#140011;
+      box-shadow: 0 12px 28px rgba(255,79,166,.22);
+      transform-origin:center;
+    }
+    #no{
+      background:#ffffff;
+      color: var(--text);
+      border:1px solid rgba(26,19,51,.12);
+      box-shadow: 0 12px 28px rgba(26,19,51,.08);
+    }
+
+    .no-message{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(255,79,166,.10);
+      border: 1px solid rgba(255,79,166,.18);
+      color: rgba(26,19,51,.85);
+      font-weight:800;
+      display:inline-block;
+    }
+    .hidden{ display:none; }
+
+    .footer{ margin-top:14px; font-size:13px; color:rgba(26,19,51,.55); }
+
+    .reveal{
+      margin-top:18px;
+      padding:16px;
+      border-radius:18px;
+      background: rgba(255,79,166,.08);
+      border: 1px solid rgba(255,79,166,.16);
+    }
+
+    /* corazoncitos al decir sí */
+    .pop-heart{
+      position:fixed; font-size:18px; opacity:0;
+      animation: pop 3.1s linear forwards;
+      pointer-events:none; z-index:9999;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.10));
+    }
+    @keyframes pop{
+      0%   { transform: translateY(20px) scale(.9); opacity:0; }
+      10%  { opacity:.95; }
+      100% { transform: translateY(-820px) scale(1.15); opacity:0; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-hearts" id="bgHearts" aria-hidden="true"></div>
+
+  <div class="card">
+    <div>
+      <h1>Hey <span id="toName">amorcito</span>… ¿quieres ser mi Valentine? 💘</h1>
+      <p id="subtitle">Prometo que sera especial. 💘 </p>
+    </div>
+
+    <!-- ✅ IMPORTANTE:
+         Tu GIF está en la misma carpeta que index.html, así que la ruta correcta es: stitch.gif
+         NO uses C:\Users\... dentro del HTML.
+    -->
+    <img class="gif" id="mainGif" src="stitch.gif" alt="Stitch gif" />
+
+    <div class="btns">
+      <button id="yes" type="button">Sí 💖</button>
+      <button id="no" type="button">No 🙃</button>
+    </div>
+
+    <div class="no-message hidden" id="noMsg"></div>
+    <div class="footer" id="hint">Tip: el “No” solo aguanta 3 intentos 😈</div>
+
+    <div class="reveal hidden" id="reveal">
+      <h2 style="margin:0 0 6px;font-size:20px;">Ahora sos mi valentine 😌💞</h2>
+      <p style="margin:0;color:rgba(26,19,51,.78)"><span id="finalMsg"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      toName: "amorcito",
+      subtitle: "Prometo que la vamos a pasar super. 😌",
+      finalMsg: "Listo 😌💖 Entonces es una cita, para confirmar asistencia por favor enviar una foto tirando un besito.💖💖💖",
+      bgHeartsCount: 24,
+      yesGrowStep: 0.18,    // crece más para que se note
+      yesMaxScale: 2.6
+    };
+
+    const toNameEl  = document.getElementById("toName");
+    const subtitleEl = document.getElementById("subtitle");
+    const finalMsgEl = document.getElementById("finalMsg");
+    const yesBtn = document.getElementById("yes");
+    const noBtn  = document.getElementById("no");
+    const reveal = document.getElementById("reveal");
+    const bgHearts = document.getElementById("bgHearts");
+    const noMsg = document.getElementById("noMsg");
+    const hint = document.getElementById("hint");
+
+    toNameEl.textContent = CONFIG.toName;
+    subtitleEl.textContent = CONFIG.subtitle;
+    finalMsgEl.textContent = CONFIG.finalMsg;
+
+    function makeBackgroundHearts() {
+      const emojis = ["💗","💘","💖","💞"];
+      for (let i = 0; i < CONFIG.bgHeartsCount; i++) {
+        const s = document.createElement("span");
+        s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        s.style.setProperty("--x", Math.floor(Math.random() * 100) + "vw");
+        s.style.setProperty("--size", (12 + Math.random() * 22).toFixed(0) + "px");
+        s.style.setProperty("--dur", (8 + Math.random() * 10).toFixed(2) + "s");
+        s.style.animationDelay = (Math.random() * 8).toFixed(2) + "s";
+        bgHearts.appendChild(s);
+      }
+    }
+    makeBackgroundHearts();
+
+    function popHearts() {
+      const emojis = ["💘","💗","💖","💞"];
+      for (let i = 0; i < 22; i++) {
+        const h = document.createElement("div");
+        h.className = "pop-heart";
+        h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        h.style.left = (Math.random() * 100) + "vw";
+        h.style.bottom = "-20px";
+        h.style.animationDelay = (Math.random() * 0.9) + "s";
+        h.style.fontSize = (14 + Math.random() * 20) + "px";
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 3300);
+      }
+    }
+
+    let noClicks = 0;
+    let yesScale = 1;
+
+    function setYesScale() {
+      yesBtn.style.transform = `scale(${yesScale})`;
+    }
+
+    const NO_MESSAGES = [
+      "¿Por qué no? 🥺",
+      "Ya no me quieres? 😭",
+      "Ok… ya no es chistoso 😐, ya presiona SÍ 💖"
+    ];
+
+    noBtn.addEventListener("click", () => {
+      noClicks++;
+
+      // Crece el botón SÍ siempre
+      yesScale = Math.min(CONFIG.yesMaxScale, yesScale + CONFIG.yesGrowStep);
+      setYesScale();
+
+      // Mensajes y límite de 3 clicks
+      if (noClicks <= 3) {
+        noMsg.textContent = NO_MESSAGES[noClicks - 1];
+        noMsg.classList.remove("hidden");
+      }
+
+      if (noClicks >= 3) {
+        noBtn.disabled = true;
+        hint.textContent = "Se acabaron los NO 😌";
+      }
+    });
+
+    yesBtn.addEventListener("click", () => {
+      reveal.classList.remove("hidden");
+      popHearts();
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      noMsg.classList.add("hidden");
+      hint.textContent = "Listo 😌 Ahora solo falta la cita.";
+    });
+
+    // Si el gif no carga, esto te lo deja claro
+    const mainGif = document.getElementById("mainGif");
+    mainGif.addEventListener("error", () => {
+      hint.textContent = "No se encontró el stitch.gif 😅 Asegúrate que index.html y stitch.gif estén en la MISMA carpeta.";
+    });
+  </script>
+</body>
+</html>
